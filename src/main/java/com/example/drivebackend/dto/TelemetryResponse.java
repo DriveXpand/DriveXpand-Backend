@@ -1,7 +1,7 @@
 package com.example.drivebackend.dto;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 public record TelemetryResponse(
@@ -10,8 +10,8 @@ public record TelemetryResponse(
         Instant recordedAt,
         Long startTime,
         Long endTime,
-        JsonNode aggregatedData,
-        JsonNode metrics
+        Map<String, Object> aggregatedData,
+        Map<String, Object> metrics
 ) {
 }
 
