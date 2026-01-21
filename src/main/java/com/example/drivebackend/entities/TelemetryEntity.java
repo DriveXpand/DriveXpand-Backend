@@ -7,7 +7,6 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.util.Map;
-import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -24,9 +23,6 @@ public class TelemetryEntity {
     //TODO : Add relation to DeviceEntity
     @Column(nullable = false)
     private String deviceId;
-
-    @Column(nullable = false)
-    private Instant recordedAt;
 
     private Long startTime;
     private Long endTime;

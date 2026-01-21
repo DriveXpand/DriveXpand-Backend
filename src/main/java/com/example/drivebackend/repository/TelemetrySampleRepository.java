@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface TelemetrySampleRepository extends JpaRepository<TelemetryEntity, UUID> {
 
-    Optional<TelemetryEntity> findTopByDeviceIdOrderByRecordedAtDesc(String deviceId);
+    Optional<TelemetryEntity> findTopByDeviceIdOrderByStartTimeDesc(String deviceId);
 }
 

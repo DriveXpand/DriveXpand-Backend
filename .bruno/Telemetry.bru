@@ -7,19 +7,12 @@ meta {
 post {
   url: {{host}}/api/telemetry
   body: json
-  auth: apikey
-}
-
-auth:apikey {
-  key: X-API-KEY
-  value: {{api-key}}
-  placement: header
+  auth: inherit
 }
 
 body:json {
   {
     "deviceId": "abcde",
-    "recordedAt": "2024-06-01T12:34:56.789Z",
     "end_time": 820859369,
     "aggregated_data": {
       "distance": 0.0

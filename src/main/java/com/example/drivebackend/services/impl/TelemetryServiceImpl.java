@@ -35,7 +35,7 @@ public class TelemetryServiceImpl implements TelemetryService {
 
     @Override
     public Optional<TelemetryResponse> fetchLatestTelemetry(String deviceId) {
-        return telemetrySampleRepository.findTopByDeviceIdOrderByRecordedAtDesc(deviceId)
+        return telemetrySampleRepository.findTopByDeviceIdOrderByStartTimeDesc(deviceId)
                 .map(telemetryMapper::toDto);
     }
 }

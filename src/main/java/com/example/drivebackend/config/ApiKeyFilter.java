@@ -26,10 +26,8 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         if (apiKey.equals(requestKey)) {
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("API_USER", null, Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(auth);
-            filterChain.doFilter(request, response);
-        } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid API Key");
         }
+
+        filterChain.doFilter(request, response);
     }
 }
