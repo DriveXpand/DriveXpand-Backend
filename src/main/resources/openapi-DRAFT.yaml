@@ -1,0 +1,242 @@
+openapi: 3.0.3
+info:
+  title: DriveXpand API
+  description: API zur Verwaltung von OBD2-Geräten, Fahrzeugdaten und Fahranalysen
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Devices
+  - name: Vehicles
+  - name: Statistics
+  - name: Analysis
+  - name: Achievements
+  - name: Trips
+
+paths:
+
+  /api/v1/devices:
+    get:
+      tags: [Devices]
+      summary: Liste verfügbarer OBD2-Geräte
+      description: Liefert die Auswahl für die Geräte-Dropdownliste
+      responses:
+        '200':
+          description: Erfolgreiche Antwort
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
+
+  /api/v1/vehicle/{id}/stats:
+    get:
+      tags: [Statistics]
+      summary: Fahrzeug-Statistiken
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: filter
+          in: query
+          description: Zeitfilter (-d, -m, -y)
+          schema:
+            type: string
+            enum: [-d, -m, -y]
+      responses:
+        '200':
+          description: Statistikdaten
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleStats'
+
+  /api/v1/vehicle/{id}/analysis:
+    get:
+      tags: [Analysis]
+      summary: Fahranalyse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analyseergebnisse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleAnalysis'
+
+  /api/v1/vehicle/{id}/achievements: # Optional für später 
+    get:
+      tags: [Achievements]
+      summary: Achievements eines Fahrzeugs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Achievement-Status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Achievement'
+
+  /api/v1/vehicle/{id}/trips:
+    get:
+      tags: [Trips]
+      summary: Letzte Fahrten
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste abgeschlossener Fahrten
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trip'
+
+components:
+  schemas:
+
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        manufacturer:
+          type: string
+
+    VehicleConnectRequest:
+      type: object
+      required: [device_id, vehicle_model]
+      properties:
+        device_id:
+          type: string
+          format: uuid
+        vehicle_model:
+          type: string
+
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: string
+        model:
+          type: string
+
+    VehicleStats:
+      type: object
+      properties:
+        total_km:
+          type: number
+          example: 12450.5
+        avg_speed:
+          type: number
+          example: 62.3
+        total_drive_time_minutes:
+          type: integer
+          example: 1240
+        trip_count:
+          type: integer
+          example: 42
+
+    VehicleAnalysis:
+      type: object
+      properties:
+        weekday_usage:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayValue'
+        time_of_day_usage:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeBucket'
+        safety_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetyEvent'
+
+    DayValue:
+      type: object
+      properties:
+        day:
+          type: string
+          example: Mo
+        value:
+          type: integer
+          example: 120
+
+    TimeBucket:
+      type: object
+      properties:
+        label:
+          type: string
+          example: Morning
+        value:
+          type: integer
+          example: 45
+
+    SafetyEvent:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [HARD_BRAKE, RAPID_ACCELERATION]
+
+    Achievement:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 1000 km Club
+        achieved:
+          type: boolean
+        progress_percent:
+          type: number
+          example: 78.5
+
+    Trip:
+      type: object
+      properties:
+        trip_id:
+          type: string
+        datum_uhrzeit_start:
+          type: string
+          example: "2026-01-15 14:32"
+        datum_uhrzeit_ende:
+          type: string
+          example: "2026-01-15 14:32"
+        km:
+          type: number
+        dauer:
+          type: string
+        avg_speed:
+          type: string
+        tag:
+          type: string 

@@ -1,0 +1,124 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+paths:
+  /api/telemetry:
+    post:
+      tags:
+      - telemetry-controller
+      operationId: ingestTelemetry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TelemetryIngestRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TelemetryResponse"
+  /api/telemetry/range:
+    get:
+      tags:
+      - telemetry-controller
+      operationId: fetchTelemetryGroupedByDrive
+      parameters:
+      - name: deviceId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: since
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: timeBetweenDrivesInSeconds
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 600
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/TelemetryResponse"
+  /api/telemetry/latest:
+    get:
+      tags:
+      - telemetry-controller
+      operationId: fetchLatestTelemetry
+      parameters:
+      - name: deviceId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TelemetryResponse"
+components:
+  schemas:
+    TelemetryIngestRequest:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        recordedAt:
+          type: string
+          format: date-time
+        aggregation:
+          type: object
+          additionalProperties:
+            type: object
+        metrics:
+          type: object
+          additionalProperties:
+            type: object
+        errors:
+          type: object
+          additionalProperties:
+            type: object
+      required:
+      - deviceId
+      - recordedAt
+    TelemetryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        deviceId:
+          type: string
+        recordedAt:
+          type: string
+          format: date-time
+        metrics:
+          type: object
+          additionalProperties:
+            type: object
