@@ -34,12 +34,13 @@ public class TelemetryEntity {
     @Column(name="start_time", nullable = false)
     private Instant startTime;
 
+    //@Column(columnDefinition = "jsonb")
+    //@JdbcTypeCode(SqlTypes.JSON)
     @Convert(converter = TelemetryMetricsConverter.class)
-    @Column(columnDefinition = "TEXT") // 'text' statt 'jsonb' für H2-Kompatibilität
+    @Column(name = "timed_data", columnDefinition = "TEXT") // 'text' statt 'jsonb' für H2-Kompatibilität
     private Map<String, Object> timed_data;
-}
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Map<String, Object> metrics;
+    @Convert(converter = TelemetryMetricsConverter.class)
+    @Column(name = "aggregated_data", columnDefinition = "TEXT") // 'text' statt 'jsonb' für H2-Kompatibilität
+    private Map<String, Object> aggregated_data;
 }

@@ -6,10 +6,10 @@
     "node_modules",
     ".git"
   ],
-  "size": 0.0007238388061523438,
-  "filesCount": 3,
+  "size": 0.0012311935424804688,
+  "filesCount": 6,
   "proxy": {
-    "enabled": true,
+    "enabled": false,
     "protocol": "http",
     "hostname": "{{proxy}}",
     "port": 8080,
