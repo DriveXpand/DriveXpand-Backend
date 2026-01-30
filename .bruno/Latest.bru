@@ -1,17 +1,13 @@
 meta {
-  name: Telemetry
+  name: Latest
   type: http
-  seq: 3
+  seq: 4
 }
 
 get {
-  url: {{host}}/api/telemetry/:deviceId
+  url: {{host}}/api/telemetry/latest
   body: none
   auth: inherit
-}
-
-params:path {
-  deviceId: abcde
 }
 
 settings {

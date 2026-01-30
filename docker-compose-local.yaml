@@ -1,0 +1,39 @@
+services:
+  # Local Database
+  db:
+    image: postgres:15-alpine
+    container_name: local_postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=drive-db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=localsecret
+    ports:
+      - "5432:5432"
+
+  # Local App (Builds from source)
+  app:
+    build:
+      context: .
+    container_name: local_spring_boot
+    depends_on:
+      - db
+    environment:
+      # Use the service name 'db' instead of 'localhost'
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/drive-db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=localsecret
+
+      # Hibernate Settings
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - DATABASE_DRIVER=org.postgresql.Driver
+      - DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+      - DEFAULT_SCHEMA=public
+
+      # API Key for testing
+      - API_KEY_VALUE=my-local-test-key
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_ORG_HIBERNATE=DEBUG
+      - LOGGING_LEVEL_ORG_HIBERNATE_SQL=DEBUG
+    ports:
+      - "8080:8080"
