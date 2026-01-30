@@ -1,0 +1,20 @@
+meta {
+  name: Telemetry
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host}}/api/telemetry/:deviceId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  deviceId: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

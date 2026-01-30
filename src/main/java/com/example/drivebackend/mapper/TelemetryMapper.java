@@ -19,4 +19,3 @@ public interface TelemetryMapper {
     @Mapping(source = "startTime", target = "start_time")
     TelemetryResponse toDto(TelemetryEntity sample);
 }
-

@@ -39,3 +39,7 @@ public class TelemetryEntity {
     private Map<String, Object> timed_data;
 }
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Object> metrics;
+}

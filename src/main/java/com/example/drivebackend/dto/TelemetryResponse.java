@@ -1,10 +1,10 @@
 package com.example.drivebackend.dto;
 
-import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 public record TelemetryResponse(
-        String id,
+        UUID id,
         String deviceId,
         Instant start_time,
         Map<String, Object> timed_data

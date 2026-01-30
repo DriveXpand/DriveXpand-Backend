@@ -1,0 +1,44 @@
+meta {
+  name: Telemetry
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/telemetry
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "deviceId": "abcde",
+    "end_time": 820859369,
+    "aggregated_data": {
+      "distance": 0.0
+    },
+    "metrics": {
+      "820859364": {
+        "rpm": 1085,
+        "speed": 0
+      },
+      "820859368": {
+        "rpm": 0
+      },
+      "820859366": {
+        "temp": 15,
+        "rpm": 204,
+        "speed": 0
+      },
+      "820859367": {
+        "speed": 0
+      }
+    },
+    "start_time": 820859363
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
