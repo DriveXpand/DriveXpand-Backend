@@ -1,6 +1,9 @@
 package com.example.drivebackend.controller;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,6 +54,23 @@ public class TelemetryController {
     ) {
         Map<Instant, List<TelemetryResponse>> telemetryMap = telemetryService.fetchTelemetryGroupedByDrive(deviceId, since, end, timeBetweenDrivesInSeconds);
         return ResponseEntity.ok(telemetryMap);
+    }
+
+    @GetMapping("/trips-per-weekday")
+    public ResponseEntity<Map<DayOfWeek, Integer>> getTripsPerWeekday(
+        @RequestParam("deviceId") String deviceId,
+        @RequestParam("since") Instant since,
+        @RequestParam("end") Instant end,
+        @RequestParam(value = "timeBetweenDrivesInSeconds", defaultValue = "600") int timeBetweenDrivesInSeconds
+        ) {
+    Map<Instant, ?> trips = telemetryService.fetchTelemetryGroupedByDrive(deviceId, since, end, timeBetweenDrivesInSeconds);
+
+    Map<DayOfWeek, Integer> result = new EnumMap<>(DayOfWeek.class);
+    for (Instant tripStart : trips.keySet()) {
+        DayOfWeek day = tripStart.atZone(ZoneOffset.UTC).getDayOfWeek();
+        result.put(day, result.getOrDefault(day, 0) + 1);
+    }
+    return ResponseEntity.ok(result);
     }
 }
 
