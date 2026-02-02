@@ -76,11 +76,11 @@ public class TelemetryServiceImpl implements TelemetryService {
                 // Map(Startzeitpunkt, List der TelemetryResponses der Fahrt)
                 aggregatedDrivesMap.put(drive.get(0).start_time(), drive);
                 drive = new ArrayList<>();
-            } else {
-                drive.add(entity);
-            }
+            } 
+            drive.add(entity);
         }
 
+        aggregatedDrivesMap.put(drive.get(0).start_time(), drive);
         return aggregatedDrivesMap;
     }
 }
