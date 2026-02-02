@@ -6,6 +6,30 @@ servers:
 - url: http://localhost:8080
   description: Generated server url
 paths:
+  /api/devices/{deviceId}/name:
+    put:
+      tags:
+      - device-controller
+      operationId: updateDeviceName
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/DeviceEntity"
   /api/telemetry:
     post:
       tags:
@@ -24,6 +48,85 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/TelemetryResponse"
+  /api/telemetry/vehicle-stats:
+    get:
+      tags:
+      - telemetry-controller
+      operationId: getVehicleStats
+      parameters:
+      - name: deviceId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: since
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: timeBetweenDrivesInSeconds
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 600
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+  /api/telemetry/trips-per-weekday:
+    get:
+      tags:
+      - telemetry-controller
+      operationId: getTripsPerWeekday
+      parameters:
+      - name: deviceId
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: since
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: timeBetweenDrivesInSeconds
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 600
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
   /api/telemetry/range:
     get:
       tags:
@@ -83,8 +186,29 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/TelemetryResponse"
+  /api/devices:
+    get:
+      tags:
+      - device-controller
+      operationId: getAllDevices
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeviceEntity"
 components:
   schemas:
+    DeviceEntity:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        name:
+          type: string
     TelemetryIngestRequest:
       type: object
       properties:
@@ -93,11 +217,14 @@ components:
         start_time:
           type: string
           format: date-time
-        aggregation:
+        end_time:
+          type: string
+          format: date-time
+        aggregated_data:
           type: object
           additionalProperties:
             type: object
-        metrics:
+        timed_data:
           type: object
           additionalProperties:
             type: object
@@ -113,12 +240,17 @@ components:
       properties:
         id:
           type: string
+          format: uuid
         deviceId:
           type: string
         start_time:
           type: string
           format: date-time
-        metrics:
+        timed_data:
+          type: object
+          additionalProperties:
+            type: object
+        aggregated_data:
           type: object
           additionalProperties:
             type: object

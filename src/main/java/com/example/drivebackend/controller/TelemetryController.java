@@ -72,5 +72,62 @@ public class TelemetryController {
     }
     return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/vehicle-stats")
+    public ResponseEntity<Map<String, Object>> getVehicleStats(
+        @RequestParam("deviceId") String deviceId,
+        @RequestParam("since") Instant since,
+        @RequestParam("end") Instant end,
+        @RequestParam(value = "timeBetweenDrivesInSeconds", defaultValue = "600") int timeBetweenDrivesInSeconds
+    ) {
+    // Hole alle Fahrten gruppiert nach Trip-Start
+    Map<Instant, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByDrive(deviceId, since, end, timeBetweenDrivesInSeconds);
+
+    double totalMeter = 0.0;
+    double totalSpeed = 0.0;
+    int speedCount = 0;
+    long totalDriveTimeSeconds = 0;
+    int tripCount = trips.size();
+
+    for (List<TelemetryResponse> trip : trips.values()) {
+        if (trip.isEmpty()) continue;
+
+        // Aggregierte Distanz aufsummieren (falls vorhanden)
+        for (TelemetryResponse resp : trip) {
+            if (resp.aggregated_data() != null && resp.aggregated_data().get("distance") instanceof Number dist) {
+                totalMeter += dist.doubleValue();
+            }
+        }
+
+        // Durchschnittsgeschwindigkeit berechnen
+        for (TelemetryResponse resp : trip) {
+            if (resp.timed_data() != null) {
+                for (Object timedEntry : resp.timed_data().values()) {
+                    if (timedEntry instanceof Map<?, ?> map && map.get("speed") instanceof Number speed) {
+                        totalSpeed += speed.doubleValue();
+                        speedCount++;
+                    }
+                }
+            }
+        }
+
+        // Fahrtdauer berechnen (Differenz zwischen erstem und letztem start_time)
+        Instant first = trip.get(0).start_time();
+        Instant last = trip.get(trip.size() - 1).start_time();
+        totalDriveTimeSeconds += Math.abs(last.getEpochSecond() - first.getEpochSecond());
+    }
+
+    double avgSpeed = speedCount > 0 ? totalSpeed / speedCount : 0.0;
+    int totalDriveTimeMinutes = (int) (totalDriveTimeSeconds / 60);
+
+    Map<String, Object> result = Map.of(
+            "total_km", totalMeter / 1000.0,
+            "avg_speed", avgSpeed,
+            "total_drive_time_minutes", totalDriveTimeMinutes,
+            "trip_count", tripCount
+    );
+
+    return ResponseEntity.ok(result);
+    }
 }
 
