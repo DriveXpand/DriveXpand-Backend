@@ -195,13 +195,13 @@ paths:
           type: string
       - name: since
         in: query
-        required: true
+        required: false
         schema:
           type: string
           format: date-time
       - name: end
         in: query
-        required: true
+        required: false
         schema:
           type: string
           format: date-time
@@ -237,6 +237,31 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/DeviceEntity"
+  /api/trips/{tripId}:
+    patch:
+      tags:
+      - trip-controller
+      operationId: updateTrip
+      parameters:
+      - name: tripId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TripUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TripResponse"
 components:
   schemas:
     DeviceEntity:
@@ -294,3 +319,28 @@ components:
           type: object
           additionalProperties:
             type: object
+    TripUpdateRequest:
+      type: object
+      properties:
+        startLocation:
+          type: string
+        endLocation:
+          type: string
+    TripResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        deviceId:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        startLocation:
+          type: string
+        endLocation:
+          type: string

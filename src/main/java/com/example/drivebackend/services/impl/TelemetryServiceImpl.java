@@ -101,7 +101,16 @@ public class TelemetryServiceImpl implements TelemetryService {
 
     @Override
     public Map<UUID, List<TelemetryResponse>> fetchTelemetryGroupedByTrip(String deviceId, Instant since, Instant end, int timeBetweenTripsInSeconds) {
-        List<TelemetryEntity> response = telemetrySampleRepository.findAllByDeviceIdInRange(deviceId, since, end);
+        List<TelemetryEntity> response;
+        if (since != null && end != null) {
+            response = telemetrySampleRepository.findAllByDeviceIdInRange(deviceId, since, end);
+        } else if (since != null) {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdAndStartTimeGreaterThanEqualOrderByStartTimeAsc(deviceId, since);
+        } else if (end != null) {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdAndStartTimeLessThanEqualOrderByStartTimeAsc(deviceId, end);
+        } else {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdOrderByStartTimeAsc(deviceId);
+        }
         List<TelemetryResponse> dtoResponses = response.stream().map(telemetryMapper::toDto).toList();
         Map<UUID, List<TelemetryResponse>> aggregatedDrivesMap = new LinkedHashMap<>();
 

@@ -138,8 +138,8 @@ public class TelemetryController {
     @GetMapping("/trips")
     public ResponseEntity<Map<UUID, List<TelemetryResponse>>> fetchTelemetryGroupedByTrip(
             @RequestParam("deviceId") String deviceId,
-            @RequestParam("since") Instant since,
-            @RequestParam("end") Instant end,
+            @RequestParam(value = "since", required = false) Instant since,
+            @RequestParam(value = "end", required = false) Instant end,
             @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
     ) {
         Map<UUID, List<TelemetryResponse>> tripMap = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);

@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{host}}/api/telemetry/latest?deviceId=abcde
+  url: {{host}}/api/telemetry/latest?deviceId={{deviceId}}
   body: none
   auth: inherit
 }
 
 params:query {
-  deviceId: abcde
+  deviceId: {{deviceId}}
 }
 
 settings {

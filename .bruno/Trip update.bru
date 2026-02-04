@@ -1,0 +1,23 @@
+meta {
+  name: Trip update
+  type: http
+  seq: 9
+}
+
+patch {
+  url: {{host}}/api/trips/{{tripId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "startLocation": "Munich",
+    "endLocation": "Nuremberg"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

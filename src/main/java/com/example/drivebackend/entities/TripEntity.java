@@ -34,4 +34,12 @@ public class TripEntity {
 
     @Column(name = "end_time", nullable = false)
     private Instant endTime;
+
+    // TODO: Add tag relation when the tagging system is implemented.
+
+    @Column(name = "start_location")
+    private String startLocation;
+
+    @Column(name = "end_location")
+    private String endLocation;
 }
