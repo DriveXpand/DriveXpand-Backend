@@ -9,6 +9,7 @@ public record TelemetryResponse(
         String deviceId,
         UUID tripId,
         Instant start_time,
+        Instant end_time,
         Map<String, Object> timed_data,
         Map<String, Object> aggregated_data
 ) {

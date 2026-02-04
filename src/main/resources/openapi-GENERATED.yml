@@ -275,11 +275,11 @@ components:
         deviceId:
           type: string
         start_time:
-          type: string
-          format: date-time
+          type: integer
+          format: int64
         end_time:
-          type: string
-          format: date-time
+          type: integer
+          format: int64
         aggregated_data:
           type: object
           additionalProperties:
@@ -307,6 +307,9 @@ components:
           type: string
           format: uuid
         start_time:
+          type: string
+          format: date-time
+        end_time:
           type: string
           format: date-time
         timed_data:

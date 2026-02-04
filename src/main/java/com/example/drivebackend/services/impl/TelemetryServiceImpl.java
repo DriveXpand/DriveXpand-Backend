@@ -53,14 +53,14 @@ public class TelemetryServiceImpl implements TelemetryService {
                 return deviceRepository.save(newDevice);
             });
 
-        TripEntity trip = resolveTrip(device, request.start_time());
-
         TelemetryEntity sample = telemetryMapper.toEntity(request);
+        TripEntity trip = resolveTrip(device, sample.getStartTime());
+
         sample.setDevice(device);
         sample.setTrip(trip);
         telemetrySampleRepository.save(sample);
 
-        updateTripEndTime(trip, request.start_time());
+        updateTripEndTime(trip, sample.getEndTime() != null ? sample.getEndTime() : sample.getStartTime());
 
         log.debug("Stored telemetry sample for device {}", request.deviceId());
         return telemetryMapper.toDto(sample);

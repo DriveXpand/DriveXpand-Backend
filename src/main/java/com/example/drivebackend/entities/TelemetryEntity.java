@@ -38,6 +38,9 @@ public class TelemetryEntity {
     @Column(name="start_time", nullable = false)
     private Instant startTime;
 
+    @Column(name="end_time")
+    private Instant endTime;
+
     //@Column(columnDefinition = "jsonb")
     //@JdbcTypeCode(SqlTypes.JSON)
     @Convert(converter = TelemetryMetricsConverter.class)
