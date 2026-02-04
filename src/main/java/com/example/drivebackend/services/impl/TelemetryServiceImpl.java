@@ -71,11 +71,34 @@ public class TelemetryServiceImpl implements TelemetryService {
 
     @Override
     public List<TelemetryResponse> fetchTelemetryInRange(String deviceId, Instant since, Instant end) {
-        List<TelemetryEntity> response = telemetrySampleRepository.findAllByDeviceIdInRange(deviceId, since, end);
-        List<TelemetryResponse> dtoResult = response.stream().map(telemetryMapper::toDto).toList();
-        return dtoResult;
+        List<TelemetryEntity> response;
+        if (since != null && end != null) {
+            response = telemetrySampleRepository.findAllByDeviceIdInRange(deviceId, since, end);
+        } else if (since != null) {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdAndStartTimeGreaterThanEqualOrderByStartTimeAsc(deviceId, since);
+        } else if (end != null) {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdAndStartTimeLessThanEqualOrderByStartTimeAsc(deviceId, end);
+        } else {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdOrderByStartTimeAsc(deviceId);
+        }
+        return response.stream().map(telemetryMapper::toDto).toList();
     }
-    
+
+    @Override
+    public List<TelemetryResponse> fetchTelemetryInRangeByTrip(String deviceId, UUID tripId, Instant since, Instant end) {
+        List<TelemetryEntity> response;
+        if (since != null && end != null) {
+            response = telemetrySampleRepository.findAllByDeviceIdAndTripIdInRange(deviceId, tripId, since, end);
+        } else if (since != null) {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdAndTrip_IdAndStartTimeGreaterThanEqualOrderByStartTimeAsc(deviceId, tripId, since);
+        } else if (end != null) {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdAndTrip_IdAndStartTimeLessThanEqualOrderByStartTimeAsc(deviceId, tripId, end);
+        } else {
+            response = telemetrySampleRepository.findAllByDevice_DeviceIdAndTrip_IdOrderByStartTimeAsc(deviceId, tripId);
+        }
+        return response.stream().map(telemetryMapper::toDto).toList();
+    }
+
     @Override
     public Map<UUID, List<TelemetryResponse>> fetchTelemetryGroupedByTrip(String deviceId, Instant since, Instant end, int timeBetweenTripsInSeconds) {
         List<TelemetryEntity> response = telemetrySampleRepository.findAllByDeviceIdInRange(deviceId, since, end);

@@ -46,26 +46,17 @@ public class TelemetryController {
         return latest.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/trips")
-    public ResponseEntity<Map<UUID, List<TelemetryResponse>>> fetchTelemetryGroupedByTrip(
+    @GetMapping
+    public ResponseEntity<List<TelemetryResponse>> fetchTelemetry(
             @RequestParam("deviceId") String deviceId,
-            @RequestParam("since") Instant since,
-            @RequestParam("end") Instant end,
-            @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+            @RequestParam(value = "since", required = false) Instant since,
+            @RequestParam(value = "end", required = false) Instant end,
+            @RequestParam(value = "tripId", required = false) UUID tripId
     ) {
-        Map<UUID, List<TelemetryResponse>> tripMap = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
-        return ResponseEntity.ok(tripMap);
-    }
-
-    @GetMapping("/range")
-    public ResponseEntity<Map<UUID, List<TelemetryResponse>>> fetchTelemetryGroupedByRange(
-            @RequestParam("deviceId") String deviceId,
-            @RequestParam("since") Instant since,
-            @RequestParam("end") Instant end,
-            @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
-    ) {
-        Map<UUID, List<TelemetryResponse>> tripMap = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
-        return ResponseEntity.ok(tripMap);
+        List<TelemetryResponse> result = tripId == null
+                ? telemetryService.fetchTelemetryInRange(deviceId, since, end)
+                : telemetryService.fetchTelemetryInRangeByTrip(deviceId, tripId, since, end);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/trips-per-weekday")
@@ -82,7 +73,7 @@ public class TelemetryController {
         if (trip.isEmpty()) {
             continue;
         }
-        DayOfWeek day = trip.get(0).start_time().atZone(ZoneOffset.UTC).getDayOfWeek();
+        DayOfWeek day = trip.getFirst().start_time().atZone(ZoneOffset.UTC).getDayOfWeek();
         result.put(day, result.getOrDefault(day, 0) + 1);
     }
     return ResponseEntity.ok(result);
@@ -126,8 +117,8 @@ public class TelemetryController {
         }
 
         // Fahrtdauer berechnen (Differenz zwischen erstem und letztem start_time)
-        Instant first = trip.get(0).start_time();
-        Instant last = trip.get(trip.size() - 1).start_time();
+        Instant first = trip.getFirst().start_time();
+        Instant last = trip.getLast().start_time();
         totalDriveTimeSeconds += Math.abs(last.getEpochSecond() - first.getEpochSecond());
     }
 
@@ -142,5 +133,16 @@ public class TelemetryController {
     );
 
     return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/trips")
+    public ResponseEntity<Map<UUID, List<TelemetryResponse>>> fetchTelemetryGroupedByTrip(
+            @RequestParam("deviceId") String deviceId,
+            @RequestParam("since") Instant since,
+            @RequestParam("end") Instant end,
+            @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+    ) {
+        Map<UUID, List<TelemetryResponse>> tripMap = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
+        return ResponseEntity.ok(tripMap);
     }
 }

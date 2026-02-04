@@ -1,17 +1,20 @@
 meta {
-  name: Telemetry
+  name: Telemetry list
   type: http
   seq: 3
 }
 
 get {
-  url: {{host}}/api/telemetry/?deviceId=abcde
+  url: {{host}}/api/telemetry?deviceId=abcde&since=1996-01-04T16:29:23Z&end=1997-01-31T22:19:53Z&tripId=73d4379b-45f0-4abd-b8bd-4a11a4aff1c3
   body: none
   auth: inherit
 }
 
 params:query {
   deviceId: abcde
+  since: 1996-01-04T16:29:23Z
+  end: 1997-01-31T22:19:53Z
+  tripId: 73d4379b-45f0-4abd-b8bd-4a11a4aff1c3
 }
 
 settings {
