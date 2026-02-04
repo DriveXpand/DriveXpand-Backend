@@ -5,12 +5,12 @@ meta {
 }
 
 get {
-  url: {{host}}/api/telemetry/:deviceId
+  url: {{host}}/api/telemetry/?deviceId=abcde
   body: none
   auth: inherit
 }
 
-params:path {
+params:query {
   deviceId: abcde
 }
 
