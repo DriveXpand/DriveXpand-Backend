@@ -30,8 +30,7 @@ services:
 
       # Hibernate Settings
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - DATABASE_DRIVER=org.postgresql.Driver
-      - DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
       - DEFAULT_SCHEMA=public
 
       # API Key for testing
@@ -41,3 +40,8 @@ services:
       - LOGGING_LEVEL_ORG_HIBERNATE_SQL=INFO
     ports:
       - "8080:8080"
+
+networks:
+  drive-network:
+    driver: bridge
+

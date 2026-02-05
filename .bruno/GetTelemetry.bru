@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host}}/api/telemetry?deviceId={{deviceId}}&since=1996-01-04T16:29:23Z&end=1997-01-31T22:19:53Z&tripId=73d4379b-45f0-4abd-b8bd-4a11a4aff1c3
+  url: {{host}}/api/telemetry?deviceId={{deviceId}}&since=1996-01-04T16:29:23Z&end=1997-01-31T22:19:53Z
   body: none
   auth: inherit
 }
@@ -14,7 +14,7 @@ params:query {
   deviceId: {{deviceId}}
   since: 1996-01-04T16:29:23Z
   end: 1997-01-31T22:19:53Z
-  tripId: 73d4379b-45f0-4abd-b8bd-4a11a4aff1c3
+  ~tripId: {{tripId}}
 }
 
 settings {

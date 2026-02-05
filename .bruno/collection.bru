@@ -7,3 +7,8 @@ auth:apikey {
   value: {{api-key}}
   placement: header
 }
+tests {
+  test("status 2xx", () => {
+    expect(res.status).to.be.within(200, 299);
+  });
+}

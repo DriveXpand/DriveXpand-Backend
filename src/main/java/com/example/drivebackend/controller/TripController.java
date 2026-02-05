@@ -14,6 +14,9 @@ import com.example.drivebackend.dto.TripUpdateRequest;
 import com.example.drivebackend.entities.TripEntity;
 import com.example.drivebackend.repository.TripRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,11 +26,13 @@ public class TripController {
 
     private final TripRepository tripRepository;
 
+    @Operation(summary = "Update trip", description = "Update start/end location of a trip")
+    @ApiResponse(responseCode = "200", description = "Trip updated successfully")
+    @ApiResponse(responseCode = "404", description = "Trip not found")
     @PatchMapping("/{tripId}")
     public ResponseEntity<TripResponse> updateTrip(
-            @PathVariable UUID tripId,
-            @RequestBody TripUpdateRequest request
-    ) {
+            @Parameter(description = "Trip ID", required = true) @PathVariable UUID tripId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Trip update data", required = true) @RequestBody TripUpdateRequest request) {
         return tripRepository.findById(tripId)
                 .map(trip -> {
                     if (request.startLocation() != null) {

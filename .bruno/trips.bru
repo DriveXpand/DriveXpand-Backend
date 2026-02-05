@@ -16,6 +16,10 @@ params:query {
   ~end: 1997-01-31T22:19:53Z
 }
 
+vars:post-response {
+  tripId: Object.keys(res.body || {})[0]
+}
+
 settings {
   encodeUrl: true
   timeout: 0

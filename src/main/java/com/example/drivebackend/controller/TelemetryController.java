@@ -24,6 +24,9 @@ import com.example.drivebackend.dto.TelemetryResponse;
 import com.example.drivebackend.dto.TripDetailsResponse;
 import com.example.drivebackend.services.TelemetryService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -35,24 +38,32 @@ public class TelemetryController {
 
     private final TelemetryService telemetryService;
 
+    @Operation(summary = "Ingest telemetry", description = "Submit telemetry data for a device")
+    @ApiResponse(responseCode = "201", description = "Telemetry ingested")
     @PostMapping
     public ResponseEntity<TelemetryResponse> ingestTelemetry(@Valid @RequestBody TelemetryIngestRequest request) {
         TelemetryResponse response = telemetryService.ingestTelemetry(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "Get latest telemetry", description = "Fetch the latest telemetry record for a device")
+    @ApiResponse(responseCode = "200", description = "Latest telemetry data")
+    @ApiResponse(responseCode = "404", description = "No telemetry found")
     @GetMapping("/latest")
-    public ResponseEntity<TelemetryResponse> fetchLatestTelemetry(@RequestParam("deviceId") String deviceId) {
+    public ResponseEntity<TelemetryResponse> fetchLatestTelemetry(
+            @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId) {
         Optional<TelemetryResponse> latest = telemetryService.fetchLatestTelemetry(deviceId);
         return latest.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Get telemetry data", description = "Fetch telemetry records with optional time range and trip filtering")
+    @ApiResponse(responseCode = "200", description = "Telemetry records")
     @GetMapping
     public ResponseEntity<List<TelemetryResponse>> fetchTelemetry(
-            @RequestParam("deviceId") String deviceId,
-            @RequestParam(value = "since", required = false) Instant since,
-            @RequestParam(value = "end", required = false) Instant end,
-            @RequestParam(value = "tripId", required = false) UUID tripId
+            @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
+            @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
+            @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
+            @Parameter(description = "Trip ID (optional)") @RequestParam(value = "tripId", required = false) UUID tripId
     ) {
         List<TelemetryResponse> result = tripId == null
                 ? telemetryService.fetchTelemetryInRange(deviceId, since, end)
@@ -60,12 +71,14 @@ public class TelemetryController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Trips per weekday", description = "Count trips grouped by day of week")
+    @ApiResponse(responseCode = "200", description = "Trip counts by weekday")
     @GetMapping("/trips-per-weekday")
     public ResponseEntity<Map<DayOfWeek, Integer>> getTripsPerWeekday(
-        @RequestParam("deviceId") String deviceId,
-        @RequestParam(value = "since", required = false) Instant since,
-        @RequestParam(value = "end", required = false) Instant end,
-        @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+        @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
+        @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
+        @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
+        @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
         ) {
     Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
 
@@ -80,12 +93,14 @@ public class TelemetryController {
     return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Vehicle statistics", description = "Get aggregated vehicle statistics (distance, speed, drive time)")
+    @ApiResponse(responseCode = "200", description = "Vehicle statistics")
     @GetMapping("/vehicle-stats")
     public ResponseEntity<Map<String, Object>> getVehicleStats(
-        @RequestParam("deviceId") String deviceId,
-        @RequestParam("since") Instant since,
-        @RequestParam("end") Instant end,
-        @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+        @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
+        @Parameter(description = "Start time", required = true) @RequestParam("since") Instant since,
+        @Parameter(description = "End time", required = true) @RequestParam("end") Instant end,
+        @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
     ) {
     Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
 
@@ -136,12 +151,14 @@ public class TelemetryController {
     return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Get trips with details", description = "Fetch telemetry grouped by trip with detailed information")
+    @ApiResponse(responseCode = "200", description = "Trips with details")
     @GetMapping("/trips")
     public ResponseEntity<Map<UUID, TripDetailsResponse>> fetchTelemetryGroupedByTrip(
-            @RequestParam("deviceId") String deviceId,
-            @RequestParam(value = "since", required = false) Instant since,
-            @RequestParam(value = "end", required = false) Instant end,
-            @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+            @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
+            @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
+            @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
+            @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
     ) {
         Map<UUID, TripDetailsResponse> tripMap = telemetryService.fetchTripDetails(deviceId, since, end, timeBetweenTripsInSeconds);
         return ResponseEntity.ok(tripMap);
