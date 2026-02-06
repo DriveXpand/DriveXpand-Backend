@@ -1,6 +1,10 @@
 package com.example.drivebackend.controller;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.drivebackend.dto.TripDetailsResponse;
 import com.example.drivebackend.dto.TripResponse;
 import com.example.drivebackend.dto.TripUpdateRequest;
+import com.example.drivebackend.dto.TelemetryResponse;
 import com.example.drivebackend.entities.TripEntity;
 import com.example.drivebackend.repository.TripRepository;
 import com.example.drivebackend.services.TelemetryService;
@@ -32,6 +37,28 @@ public class TripController {
 
     private final TripRepository tripRepository;
     private final TelemetryService telemetryService;
+
+    @Operation(summary = "Trips per weekday", description = "Count trips grouped by day of week")
+    @ApiResponse(responseCode = "200", description = "Trip counts by weekday")
+    @GetMapping("/weekday")
+    public ResponseEntity<Map<DayOfWeek, Integer>> getTripsPerWeekday(
+            @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
+            @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
+            @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
+            @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+    ) {
+        Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
+
+        Map<DayOfWeek, Integer> result = new EnumMap<>(DayOfWeek.class);
+        for (List<TelemetryResponse> trip : trips.values()) {
+            if (trip.isEmpty()) {
+                continue;
+            }
+            DayOfWeek day = trip.getFirst().start_time().atZone(ZoneOffset.UTC).getDayOfWeek();
+            result.put(day, result.getOrDefault(day, 0) + 1);
+        }
+        return ResponseEntity.ok(result);
+    }
 
     @Operation(summary = "Get trips with details", description = "Fetch telemetry grouped by trip with detailed information")
     @ApiResponse(responseCode = "200", description = "Trips with details")
