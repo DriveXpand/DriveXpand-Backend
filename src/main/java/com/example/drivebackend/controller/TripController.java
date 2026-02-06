@@ -1,18 +1,24 @@
 package com.example.drivebackend.controller;
 
+import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.drivebackend.dto.TripDetailsResponse;
 import com.example.drivebackend.dto.TripResponse;
 import com.example.drivebackend.dto.TripUpdateRequest;
 import com.example.drivebackend.entities.TripEntity;
 import com.example.drivebackend.repository.TripRepository;
+import com.example.drivebackend.services.TelemetryService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +31,20 @@ import lombok.RequiredArgsConstructor;
 public class TripController {
 
     private final TripRepository tripRepository;
+    private final TelemetryService telemetryService;
+
+    @Operation(summary = "Get trips with details", description = "Fetch telemetry grouped by trip with detailed information")
+    @ApiResponse(responseCode = "200", description = "Trips with details")
+    @GetMapping
+    public ResponseEntity<Map<UUID, TripDetailsResponse>> fetchTelemetryGroupedByTrip(
+            @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
+            @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
+            @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
+            @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+    ) {
+        Map<UUID, TripDetailsResponse> tripMap = telemetryService.fetchTripDetails(deviceId, since, end, timeBetweenTripsInSeconds);
+        return ResponseEntity.ok(tripMap);
+    }
 
     @Operation(summary = "Update trip", description = "Update start/end location of a trip")
     @ApiResponse(responseCode = "200", description = "Trip updated successfully")

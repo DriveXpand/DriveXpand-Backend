@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.drivebackend.dto.TelemetryIngestRequest;
 import com.example.drivebackend.dto.TelemetryResponse;
-import com.example.drivebackend.dto.TripDetailsResponse;
 import com.example.drivebackend.services.TelemetryService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -149,18 +148,5 @@ public class TelemetryController {
     );
 
     return ResponseEntity.ok(result);
-    }
-
-    @Operation(summary = "Get trips with details", description = "Fetch telemetry grouped by trip with detailed information")
-    @ApiResponse(responseCode = "200", description = "Trips with details")
-    @GetMapping("/trips")
-    public ResponseEntity<Map<UUID, TripDetailsResponse>> fetchTelemetryGroupedByTrip(
-            @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
-            @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
-            @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
-            @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
-    ) {
-        Map<UUID, TripDetailsResponse> tripMap = telemetryService.fetchTripDetails(deviceId, since, end, timeBetweenTripsInSeconds);
-        return ResponseEntity.ok(tripMap);
     }
 }
