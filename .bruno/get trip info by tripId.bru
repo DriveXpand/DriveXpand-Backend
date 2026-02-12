@@ -1,11 +1,11 @@
 meta {
-  name: trips
+  name: get trip info by tripId
   type: http
-  seq: 6
+  seq: 8
 }
 
 get {
-  url: {{host}}/api/trips?deviceId={{deviceId}}
+  url: {{host}}/api/trips/{{tripId}}?deviceId={{deviceId}}
   body: none
   auth: inherit
 }
@@ -17,7 +17,7 @@ params:query {
 }
 
 vars:post-response {
-  tripId: Object.keys(res.body || {})[0]
+  tripId: 
 }
 
 settings {

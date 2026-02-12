@@ -1,19 +1,17 @@
 meta {
-  name: weekday usage
+  name: trips without details
   type: http
-  seq: 9
+  seq: 7
 }
 
 get {
-  url: {{host}}/api/trips/weekday?deviceId={{deviceId}}
+  url: {{host}}/api/trips/list?deviceId={{deviceId}}
   body: none
   auth: inherit
 }
 
 params:query {
   deviceId: {{deviceId}}
-  ~since: 1996-01-04T16:39:02Z
-  ~end: 1997-01-31T22:19:53Z
 }
 
 settings {

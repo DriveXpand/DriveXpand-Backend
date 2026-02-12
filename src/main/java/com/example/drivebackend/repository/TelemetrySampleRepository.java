@@ -41,4 +41,6 @@ public interface TelemetrySampleRepository extends JpaRepository<TelemetryEntity
     List<TelemetryEntity> findAllByDevice_DeviceIdAndTrip_IdAndStartTimeGreaterThanEqualOrderByStartTimeAsc(String deviceId, UUID tripId, Instant since);
 
     List<TelemetryEntity> findAllByDevice_DeviceIdAndTrip_IdAndStartTimeLessThanEqualOrderByStartTimeAsc(String deviceId, UUID tripId, Instant end);
+
+    List<TelemetryEntity> findByTrip_IdAndDevice_DeviceId(UUID tripId, String deviceId);
 }
