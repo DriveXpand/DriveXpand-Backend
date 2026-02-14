@@ -20,6 +20,7 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final String secret;
+    private static final long EXPIRATION = 86400000; // 1 day
 
     // Constructor Injection
     public AuthController(AuthenticationManager authenticationManager,
@@ -51,7 +52,7 @@ public class AuthController {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 86400000))
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(key)
                 .compact();
     }
