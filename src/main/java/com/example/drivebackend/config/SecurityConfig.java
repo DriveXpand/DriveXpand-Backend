@@ -41,10 +41,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/webjars/**",
                                 "/api-docs.yaml",
-                                "/error"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                                "/error")
+                        .permitAll()
+                        .anyRequest().authenticated())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .addFilterBefore(new ApiKeyFilter(apiKeyValue), UsernamePasswordAuthenticationFilter.class);
 
@@ -55,15 +54,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
+
         // Allow localhost for dev
-        configuration.setAllowedOriginPatterns(List.of("http://localhost*", "https://drivexpand.rehr.cloud")); 
-        
+        configuration.setAllowedOriginPatterns(List.of("http://localhost*", "https://drivexpand.rehr.cloud"));
+
         // Explicitly allow all methods, crucially OPTIONS and PUT
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); 
-        
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
         // Allow all headers
-        configuration.setAllowedHeaders(List.of("*")); 
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
