@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -32,21 +34,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // 1. Check for the Authorization Header
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token = null;
+
+        // We use Spring's WebUtils to find the cookie by name easily
+        Cookie cookie = WebUtils.getCookie(request, "accessToken");
+
+        if (cookie != null) {
+            token = cookie.getValue();
+        }
+
+        // If no token found in cookie, skip validation and continue chain
+        if (token == null) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2. Extract the Token
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
-
         try {
-            // 3. Create Key from Secret
+            // 2. Create Key from Secret
             SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
-            // 4. Validate Token & Parse Claims (JJWT 0.12.x Syntax)
+            // 3. Validate Token & Parse Claims
             Claims claims = Jwts.parser()
                     .verifyWith(key) // verify signature with secret
                     .build()
@@ -55,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String username = claims.getSubject();
 
-            // 5. If valid and not already authenticated
+            // 4. If valid and not already authenticated
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 // Load user details from memory
@@ -69,7 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // 6. Set Authentication in Context
+                // 5. Set Authentication in Context
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
 
@@ -77,7 +84,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Token is invalid, expired, or tampered with.
             // We clear context just to be safe.
             SecurityContextHolder.clearContext();
-            System.out.println("JWT Verification Failed: " + e.getMessage());
         }
         chain.doFilter(request, response);
     }
