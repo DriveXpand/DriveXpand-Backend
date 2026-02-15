@@ -40,6 +40,7 @@ services:
       - LOGGING_LEVEL_ORG_HIBERNATE_SQL=INFO
 
       # USER
+      - IS_PROD=false
       - USERNAME=test
       # Use $$ to escape $
       - PASSWORD=$$2a$$10$$tnZv1cdTwsYNdW1Rf4DBYOJbBr/Woru0VaaRBbESy94IXf4anvxH6
