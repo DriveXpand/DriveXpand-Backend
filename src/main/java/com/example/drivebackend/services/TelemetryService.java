@@ -21,7 +21,7 @@ public interface TelemetryService {
     List<TelemetryResponse> fetchTelemetryInRangeByTrip(String deviceId, UUID tripId, Instant since, Instant end);
 
     // Map für alle Fahrten in gegebenen Zeitraum. Der key ist die Fahrt-ID
-    Map<UUID, List<TelemetryResponse>> fetchTelemetryGroupedByTrip(String deviceId, Instant since, Instant end, int timeBetweenTripsInSeconds);
+    Map<UUID, List<TelemetryResponse>> fetchTelemetryGroupedByTrip(String deviceId, Instant since, Instant end);
 
-    Map<UUID, TripDetailsResponse> fetchTripDetails(String deviceId, Instant since, Instant end, int timeBetweenTripsInSeconds);
+    Map<UUID, TripDetailsResponse> fetchTripDetails(String deviceId, Instant since, Instant end);
 }

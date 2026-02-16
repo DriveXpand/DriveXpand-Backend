@@ -1,11 +1,11 @@
 meta {
   name: Trip update
   type: http
-  seq: 12
+  seq: 13
 }
 
 patch {
-  url: {{host}}/api/trips/0f0037d4-d0da-4656-aece-65968a582a53
+  url: {{host}}/api/trips/{{tripId}}
   body: json
   auth: inherit
 }

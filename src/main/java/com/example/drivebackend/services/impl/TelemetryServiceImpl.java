@@ -113,7 +113,7 @@ public class TelemetryServiceImpl implements TelemetryService {
     }
 
     @Override
-    public Map<UUID, List<TelemetryResponse>> fetchTelemetryGroupedByTrip(String deviceId, Instant since, Instant end, int timeBetweenTripsInSeconds) {
+    public Map<UUID, List<TelemetryResponse>> fetchTelemetryGroupedByTrip(String deviceId, Instant since, Instant end) {
         List<TelemetryEntity> response;
         if (since != null && end != null) {
             response = telemetrySampleRepository.findAllByDeviceIdInRange(deviceId, since, end);
@@ -136,8 +136,8 @@ public class TelemetryServiceImpl implements TelemetryService {
     }
 
     @Override
-    public Map<UUID, TripDetailsResponse> fetchTripDetails(String deviceId, Instant since, Instant end, int timeBetweenTripsInSeconds) {
-        Map<UUID, List<TelemetryResponse>> grouped = fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
+    public Map<UUID, TripDetailsResponse> fetchTripDetails(String deviceId, Instant since, Instant end) {
+        Map<UUID, List<TelemetryResponse>> grouped = fetchTelemetryGroupedByTrip(deviceId, since, end);
         Map<UUID, TripEntity> tripEntities = tripRepository.findAllById(grouped.keySet())
                 .stream()
                 .collect(Collectors.toMap(TripEntity::getId, trip -> trip));

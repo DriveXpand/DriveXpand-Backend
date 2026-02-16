@@ -53,10 +53,9 @@ public class TripController {
     public ResponseEntity<Map<DayOfWeek, Integer>> getTripsPerWeekday(
             @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
             @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
-            @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
-            @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+            @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end
     ) {
-        Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
+        Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end);
 
         Map<DayOfWeek, Integer> result = new EnumMap<>(DayOfWeek.class);
         for (List<TelemetryResponse> trip : trips.values()) {
@@ -79,14 +78,20 @@ public class TripController {
             @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
             @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
             @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
-            @Parameter(description = "Page number (0-based)") @RequestParam(value = "page", defaultValue = "0") int page,
-            @Parameter(description = "Page size") @RequestParam(value = "pageSize", defaultValue = "20") int pageSize
+            @Parameter(description = "Page number (0-based)") @RequestParam(value = "page", required = false) Integer page,
+            @Parameter(description = "Page size") @RequestParam(value = "pageSize", required = false) Integer pageSize
     ) {
-        Pageable pageable = PageRequest.of(
-                page,
-                pageSize,
-                Sort.by("startTime").descending()
-        );
+        // Paging is optional
+        Pageable pageable;
+        if (page == null || pageSize == null) {
+            pageable = Pageable.unpaged(Sort.by("startTime").descending());
+        } else {
+            pageable = PageRequest.of(
+                    page,
+                    pageSize,
+                    Sort.by("startTime").descending()
+            );
+        }
 
         Page<TripEntity> trips;
 
@@ -145,22 +150,10 @@ public class TripController {
             @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
             @Parameter(description = "Start time (optional)") @RequestParam(value = "since", required = false) Instant since,
             @Parameter(description = "End time (optional)") @RequestParam(value = "end", required = false) Instant end,
-            @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds,
             @Parameter(description = "Page 0 based (0 is first page)") @RequestParam(value = "page", required = false) Integer page,
             @Parameter() @RequestParam(value = "page", required = false) Integer pageSize
     ) {
-        Map<UUID, TripDetailsResponse> tripMap = telemetryService.fetchTripDetails(deviceId, since, end, timeBetweenTripsInSeconds);
-        //currently broken (evtl. mit Page machen wie bei /list)
-        if (page != null && pageSize != null) {
-            List<Map.Entry<UUID, TripDetailsResponse>> entries = new ArrayList<>(tripMap.entrySet());
-            int from = Math.min(page * pageSize, entries.size());
-            int to = Math.min(from + pageSize, entries.size());
-            Map<UUID, TripDetailsResponse> paged = new LinkedHashMap<>();
-            for (Map.Entry<UUID, TripDetailsResponse> entry : entries.subList(from, to)) {
-                paged.put(entry.getKey(), entry.getValue());
-            }
-            return ResponseEntity.ok(paged);
-        }
+        Map<UUID, TripDetailsResponse> tripMap = telemetryService.fetchTripDetails(deviceId, since, end);
         return ResponseEntity.ok(tripMap);
     }
 
