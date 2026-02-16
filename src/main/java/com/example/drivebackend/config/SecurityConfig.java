@@ -1,5 +1,6 @@
 package com.example.drivebackend.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -23,8 +25,16 @@ public class SecurityConfig {
     @Value("${api.key.value}")
     private String apiKeyValue;
 
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Value("${app.auth.secret}")
+    private String secret;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(secret, userDetailsService);
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 // 1. ENABLE CORS and wire it to the configuration below
@@ -34,6 +44,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/auth/login",
                                 "/h2-console/**",
                                 "/v3/api-docs/**",
                                 "/api-docs/**",
@@ -45,7 +56,8 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest().authenticated())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                .addFilterBefore(new ApiKeyFilter(apiKeyValue), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new ApiKeyFilter(apiKeyValue), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
