@@ -1,0 +1,17 @@
+meta {
+  name: Device note
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{host}}/api/devices/{{deviceId}}/note
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

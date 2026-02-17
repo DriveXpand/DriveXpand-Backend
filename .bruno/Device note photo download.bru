@@ -1,0 +1,17 @@
+meta {
+  name: Device note photo download
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{host}}/api/devices/{{deviceId}}/note/photo
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

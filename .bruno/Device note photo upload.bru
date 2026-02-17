@@ -1,0 +1,21 @@
+meta {
+  name: Device note photo upload
+  type: http
+  seq: 22
+}
+
+patch {
+  url: {{host}}/api/devices/{{deviceId}}/note/photo
+  body: multipart
+  auth: inherit
+}
+
+body:multipart {
+  file: file @file("Porsche 911 Carrera 4 GTS.jpg")
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

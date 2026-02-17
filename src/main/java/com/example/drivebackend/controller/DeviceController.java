@@ -3,19 +3,28 @@ package com.example.drivebackend.controller;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.example.drivebackend.dto.DeviceNoteRequest;
+import com.example.drivebackend.dto.DeviceNoteResponse;
 import com.example.drivebackend.entities.DeviceEntity;
 import com.example.drivebackend.repository.DeviceRepository;
+import com.example.drivebackend.services.DeviceNoteService;
 import com.example.drivebackend.services.TelemetryService;
 import com.example.drivebackend.dto.TelemetryResponse;
 
@@ -31,6 +40,7 @@ public class DeviceController {
 
     private final DeviceRepository deviceRepository;
     private final TelemetryService telemetryService;
+    private final DeviceNoteService deviceNoteService;
 
     @Operation(summary = "Vehicle statistics", description = "Get aggregated vehicle statistics (distance, speed, drive time)")
     @ApiResponse(responseCode = "200", description = "Vehicle statistics")
@@ -110,5 +120,69 @@ public class DeviceController {
                     return ResponseEntity.ok(device);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Get device note", description = "Fetch the repair note for a device")
+    @ApiResponse(responseCode = "200", description = "Device note")
+    @ApiResponse(responseCode = "404", description = "Device not found")
+    @GetMapping("/{deviceId}/note")
+    public ResponseEntity<DeviceNoteResponse> getDeviceNote(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId) {
+        return deviceNoteService.getNote(deviceId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Update device note", description = "Update repair note details for a device")
+    @ApiResponse(responseCode = "200", description = "Device note updated")
+    @ApiResponse(responseCode = "404", description = "Device not found")
+    @PatchMapping("/{deviceId}/note")
+    public ResponseEntity<DeviceNoteResponse> updateDeviceNote(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Repair note fields") @RequestBody DeviceNoteRequest request) {
+        return deviceNoteService.updateNote(deviceId, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Upload device note photo", description = "Upload or replace the repair note photo")
+    @ApiResponse(responseCode = "204", description = "Photo uploaded")
+    @ApiResponse(responseCode = "404", description = "Device not found")
+    @PatchMapping(path = "/{deviceId}/note/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> uploadDeviceNotePhoto(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
+            @Parameter(description = "Photo file", required = true) @RequestPart("file") MultipartFile file) {
+        try {
+            byte[] content = file.getBytes();
+            String contentType = file.getContentType();
+            Optional<DeviceNoteService.DeviceNotePhoto> result = deviceNoteService.updateNotePhoto(deviceId, content, contentType);
+            if (result.isPresent()) {
+                return ResponseEntity.noContent().build();
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @Operation(summary = "Download device note photo", description = "Download the repair note photo")
+    @ApiResponse(responseCode = "200", description = "Photo file")
+    @ApiResponse(responseCode = "404", description = "Device or photo not found")
+    @GetMapping("/{deviceId}/note/photo")
+    public ResponseEntity<byte[]> downloadDeviceNotePhoto(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId) {
+        Optional<DeviceNoteService.DeviceNotePhoto> photoOpt = deviceNoteService.getNotePhoto(deviceId);
+        if (photoOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        DeviceNoteService.DeviceNotePhoto photo = photoOpt.get();
+        String contentType = photo.contentType();
+        if (contentType == null || contentType.isBlank()) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(photo.content());
     }
 }
