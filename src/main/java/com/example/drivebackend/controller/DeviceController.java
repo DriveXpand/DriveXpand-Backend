@@ -47,8 +47,8 @@ public class DeviceController {
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getVehicleStats(
         @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
-        @Parameter(description = "Start time", required = true) @RequestParam("since") Instant since,
-        @Parameter(description = "End time", required = true) @RequestParam("end") Instant end,
+        @Parameter(description = "Start time") @RequestParam(value = "since", required = false) Instant since,
+        @Parameter(description = "End time") @RequestParam(value = "end", required = false) Instant end,
         @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
     ) {
         Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);

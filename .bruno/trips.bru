@@ -17,7 +17,7 @@ params:query {
 }
 
 vars:post-response {
-  tripId: Object.keys(res.body || {})[0]
+  tripId: Object.getOwnPropertyNames(res.body)[0]
 }
 
 settings {
