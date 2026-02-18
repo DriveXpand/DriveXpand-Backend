@@ -1,11 +1,13 @@
 package com.example.drivebackend.dto;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
 
-public record DeviceNoteRequest(
+public record RepairNoteResponse(
+        UUID id,
         String noteText,
-        Instant noteTimestamp,
+        LocalDate noteDate,
         BigDecimal notePrice
 ) {
 }

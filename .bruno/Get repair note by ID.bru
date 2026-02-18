@@ -1,0 +1,17 @@
+ meta {
+  name: Get repair note by ID
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{host}}/api/devices/{{deviceId}}/notes/{{noteId}}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

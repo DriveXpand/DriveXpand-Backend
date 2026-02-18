@@ -1,0 +1,17 @@
+meta {
+  name: Delete repair note
+  type: http
+  seq: 21
+}
+
+delete {
+  url: {{host}}/api/devices/{{deviceId}}/notes/{{noteId}}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

@@ -1,11 +1,11 @@
 meta {
-  name: Device note update
+  name: Create repair note
   type: http
   seq: 17
 }
 
-patch {
-  url: {{host}}/api/devices/{{deviceId}}/note
+post {
+  url: {{host}}/api/devices/{{deviceId}}/notes
   body: json
   auth: inherit
 }
@@ -13,13 +13,16 @@ patch {
 body:json {
   {
     "noteText": "Reparatur: Oelwechsel",
-    "noteTimestamp": "2026-02-17T10:00:00Z",
+    "noteDate": "2026-02-17",
     "notePrice": 199.99
   }
+}
+
+vars:post-response {
+  noteId: res.body.id
 }
 
 settings {
   encodeUrl: true
   timeout: 0
 }
-

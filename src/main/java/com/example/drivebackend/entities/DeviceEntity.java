@@ -1,12 +1,15 @@
 package com.example.drivebackend.entities;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,14 +28,10 @@ public class DeviceEntity {
     @Column(nullable = false)
     private String name = "Porsche 911 Carrera 4 GTS"; // Default-Wert
 
-    @Column(name = "note_text", length = 2000)
-    private String noteText;
-
-    @Column(name = "note_timestamp")
-    private Instant noteTimestamp;
-
-    @Column(name = "note_price", precision = 12, scale = 2)
-    private BigDecimal notePrice;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "device_id", referencedColumnName = "deviceId")
+    @JsonIgnore
+    private List<RepairNoteEntity> repairNotes = new ArrayList<>();
 
     @JsonIgnore
     @Column(name = "note_photo", columnDefinition = "bytea")

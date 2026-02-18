@@ -6,12 +6,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,17 +26,19 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.drivebackend.dto.DeviceNoteRequest;
-import com.example.drivebackend.dto.DeviceNoteResponse;
+import com.example.drivebackend.dto.RepairNoteRequest;
+import com.example.drivebackend.dto.RepairNoteResponse;
 import com.example.drivebackend.entities.DeviceEntity;
+import com.example.drivebackend.entities.RepairNoteEntity;
 import com.example.drivebackend.repository.DeviceRepository;
-import com.example.drivebackend.services.DeviceNoteService;
+import com.example.drivebackend.repository.RepairNoteRepository;
 import com.example.drivebackend.services.TelemetryService;
 import com.example.drivebackend.dto.TelemetryResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -46,8 +54,8 @@ public class DeviceController {
     );
 
     private final DeviceRepository deviceRepository;
+    private final RepairNoteRepository repairNoteRepository;
     private final TelemetryService telemetryService;
-    private final DeviceNoteService deviceNoteService;
 
     @Operation(summary = "Vehicle statistics", description = "Get aggregated vehicle statistics (distance, speed, drive time)")
     @ApiResponse(responseCode = "200", description = "Vehicle statistics")
@@ -128,68 +136,189 @@ public class DeviceController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Get device note", description = "Fetch the repair note for a device")
-    @ApiResponse(responseCode = "200", description = "Device note")
+    @Operation(summary = "Get all repair notes", description = "Fetch all repair notes for a device with optional pagination")
+    @ApiResponse(responseCode = "200", description = "List of repair notes")
     @ApiResponse(responseCode = "404", description = "Device not found")
-    @GetMapping("/{deviceId}/note")
-    public ResponseEntity<DeviceNoteResponse> getDeviceNote(
-            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId) {
-        return deviceNoteService.getNote(deviceId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @Operation(summary = "Update device note", description = "Update repair note details for a device")
-    @ApiResponse(responseCode = "200", description = "Device note updated")
-    @ApiResponse(responseCode = "404", description = "Device not found")
-    @PatchMapping("/{deviceId}/note")
-    public ResponseEntity<DeviceNoteResponse> updateDeviceNote(
+    @GetMapping("/{deviceId}/notes")
+    public ResponseEntity<List<RepairNoteResponse>> getRepairNotes(
             @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Repair note fields") @RequestBody DeviceNoteRequest request) {
-        return deviceNoteService.updateNote(deviceId, request)
+            @Parameter(description = "Page number (0-based)") @RequestParam(value = "page", required = false) Integer page,
+            @Parameter(description = "Page size") @RequestParam(value = "pageSize", required = false) Integer pageSize) {
+
+        // Check if device exists
+        if (!deviceRepository.existsById(deviceId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Pageable pageable;
+        if (page == null || pageSize == null) {
+            pageable = Pageable.unpaged(Sort.by("noteDate").descending());
+        } else {
+            pageable = PageRequest.of(page, pageSize, Sort.by("noteDate").descending());
+        }
+
+        Page<RepairNoteEntity> notes = repairNoteRepository.findByDeviceIdOrderByNoteDateDesc(deviceId, pageable);
+        List<RepairNoteResponse> responses = notes.getContent().stream()
+                .map(note -> new RepairNoteResponse(note.getId(), note.getNoteText(), note.getNoteDate(), note.getNotePrice()))
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @Operation(summary = "Create repair note", description = "Create a new repair note for a device")
+    @ApiResponse(responseCode = "201", description = "Repair note created")
+    @ApiResponse(responseCode = "404", description = "Device not found")
+    @PostMapping("/{deviceId}/notes")
+    public ResponseEntity<RepairNoteResponse> createRepairNote(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Repair note details") @Valid @RequestBody RepairNoteRequest request) {
+
+        // Check if device exists
+        if (!deviceRepository.existsById(deviceId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        RepairNoteEntity note = new RepairNoteEntity();
+        note.setDeviceId(deviceId);
+        note.setNoteText(request.noteText());
+        note.setNoteDate(request.noteDate());
+        note.setNotePrice(request.notePrice());
+
+        RepairNoteEntity saved = repairNoteRepository.save(note);
+        RepairNoteResponse response = new RepairNoteResponse(
+                saved.getId(),
+                saved.getNoteText(),
+                saved.getNoteDate(),
+                saved.getNotePrice()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Get repair note by ID", description = "Fetch a specific repair note")
+    @ApiResponse(responseCode = "200", description = "Repair note details")
+    @ApiResponse(responseCode = "404", description = "Note or device not found")
+    @GetMapping("/{deviceId}/notes/{noteId}")
+    public ResponseEntity<RepairNoteResponse> getRepairNoteById(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
+            @Parameter(description = "Note ID", required = true) @PathVariable UUID noteId) {
+
+        return repairNoteRepository.findByIdAndDeviceId(noteId, deviceId)
+                .map(note -> new RepairNoteResponse(note.getId(), note.getNoteText(), note.getNoteDate(), note.getNotePrice()))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Upload device note photo", description = "Upload or replace the repair note photo (supports JPEG, PNG, GIF, WebP)")
+    @Operation(summary = "Update repair note", description = "Update an existing repair note")
+    @ApiResponse(responseCode = "200", description = "Repair note updated")
+    @ApiResponse(responseCode = "404", description = "Note or device not found")
+    @PatchMapping("/{deviceId}/notes/{noteId}")
+    public ResponseEntity<RepairNoteResponse> updateRepairNote(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
+            @Parameter(description = "Note ID", required = true) @PathVariable UUID noteId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Updated repair note fields") @Valid @RequestBody RepairNoteRequest request) {
+
+        Optional<RepairNoteEntity> noteOpt = repairNoteRepository.findByIdAndDeviceId(noteId, deviceId);
+        if (noteOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        RepairNoteEntity note = noteOpt.get();
+        if (request.noteText() != null) {
+            note.setNoteText(request.noteText());
+        }
+        if (request.noteDate() != null) {
+            note.setNoteDate(request.noteDate());
+        }
+        if (request.notePrice() != null) {
+            note.setNotePrice(request.notePrice());
+        }
+
+        RepairNoteEntity saved = repairNoteRepository.save(note);
+        RepairNoteResponse response = new RepairNoteResponse(
+                saved.getId(),
+                saved.getNoteText(),
+                saved.getNoteDate(),
+                saved.getNotePrice()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Delete repair note", description = "Delete a specific repair note")
+    @ApiResponse(responseCode = "204", description = "Repair note deleted")
+    @ApiResponse(responseCode = "404", description = "Note or device not found")
+    @DeleteMapping("/{deviceId}/notes/{noteId}")
+    public ResponseEntity<Void> deleteRepairNote(
+            @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
+            @Parameter(description = "Note ID", required = true) @PathVariable UUID noteId) {
+
+        Optional<RepairNoteEntity> noteOpt = repairNoteRepository.findByIdAndDeviceId(noteId, deviceId);
+        if (noteOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        repairNoteRepository.delete(noteOpt.get());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Upload device photo", description = "Upload or replace the device photo (supports JPEG, PNG, GIF, WebP)")
     @ApiResponse(responseCode = "204", description = "Photo uploaded")
     @ApiResponse(responseCode = "404", description = "Device not found")
     @ApiResponse(responseCode = "415", description = "Unsupported image format")
+    @ApiResponse(responseCode = "400", description = "Bad request")
     @PatchMapping(path = "/{deviceId}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> uploadDeviceNotePhoto(
+    public ResponseEntity<Void> uploadDevicePhoto(
             @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
             @Parameter(description = "Photo file (JPEG, PNG, GIF, WebP)", required = true) @RequestPart("file") MultipartFile file) {
         try {
-            byte[] content = file.getBytes();
+            if (file.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
             String contentType = file.getContentType();
-            Optional<DeviceNoteService.DeviceNotePhoto> result = deviceNoteService.updateNotePhoto(deviceId, content, contentType);
-            if (result.isPresent()) {
-                return ResponseEntity.noContent().build();
-            } else {
+            if (contentType == null || !SUPPORTED_IMAGE_TYPES.contains(contentType)) {
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
+            }
+
+            byte[] content = file.getBytes();
+
+            Optional<DeviceEntity> deviceOpt = deviceRepository.findById(deviceId);
+            if (deviceOpt.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
+
+            DeviceEntity device = deviceOpt.get();
+            device.setNotePhoto(content);
+            device.setNotePhotoContentType(contentType);
+            deviceRepository.save(device);
+
+            return ResponseEntity.noContent().build();
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
-    @Operation(summary = "Download device note photo", description = "Download the repair note photo")
+
+    @Operation(summary = "Download device photo", description = "Download the device photo")
     @ApiResponse(responseCode = "200", description = "Photo file")
     @ApiResponse(responseCode = "404", description = "Device or photo not found")
     @GetMapping("/{deviceId}/photo")
-    public ResponseEntity<byte[]> downloadDeviceNotePhoto(
+    public ResponseEntity<byte[]> downloadDevicePhoto(
             @Parameter(description = "Device ID", required = true) @PathVariable String deviceId) {
-        Optional<DeviceNoteService.DeviceNotePhoto> photoOpt = deviceNoteService.getNotePhoto(deviceId);
-        if (photoOpt.isEmpty()) {
+        Optional<DeviceEntity> deviceOpt = deviceRepository.findById(deviceId);
+        if (deviceOpt.isEmpty() || deviceOpt.get().getNotePhoto() == null) {
             return ResponseEntity.notFound().build();
         }
-        DeviceNoteService.DeviceNotePhoto photo = photoOpt.get();
-        String contentType = photo.contentType();
+
+        DeviceEntity device = deviceOpt.get();
+        String contentType = device.getNotePhotoContentType();
         if (contentType == null || contentType.isBlank()) {
             contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .body(photo.content());
+                .body(device.getNotePhoto());
     }
 }

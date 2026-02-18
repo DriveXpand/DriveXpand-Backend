@@ -1,0 +1,25 @@
+ meta {
+  name: Update repair note
+  type: http
+  seq: 20
+}
+
+patch {
+  url: {{host}}/api/devices/{{deviceId}}/notes/{{noteId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "noteText": "Reparatur: Oelwechsel und Filter",
+    "noteDate": "2026-02-18",
+    "notePrice": 249.99
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
