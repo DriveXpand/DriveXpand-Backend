@@ -53,12 +53,11 @@ public class DeviceController {
     @ApiResponse(responseCode = "200", description = "Vehicle statistics")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getVehicleStats(
-        @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId,
-        @Parameter(description = "Start time") @RequestParam(value = "since", required = false) Instant since,
-        @Parameter(description = "End time") @RequestParam(value = "end", required = false) Instant end,
-        @Parameter(description = "Min seconds between trips") @RequestParam(value = "timeBetweenTripsInSeconds", defaultValue = "1800") int timeBetweenTripsInSeconds
+        @Parameter(description = "Device ID") @RequestParam(value="deviceId", required = true) String deviceId,
+        @Parameter(description = "Start time") @RequestParam(value="since", required = false) Instant since,
+        @Parameter(description = "End time") @RequestParam(value="end", required = false) Instant end
     ) {
-        Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end, timeBetweenTripsInSeconds);
+        Map<UUID, List<TelemetryResponse>> trips = telemetryService.fetchTelemetryGroupedByTrip(deviceId, since, end);
 
         double totalMeter = 0.0;
         double totalSpeed = 0.0;
@@ -89,7 +88,7 @@ public class DeviceController {
             }
 
              Instant first = trip.getFirst().start_time();
-             Instant last = trip.getLast().start_time();
+             Instant last = trip.getLast().end_time();
              totalDriveTimeSeconds += Math.abs(last.getEpochSecond() - first.getEpochSecond());
         }
 
