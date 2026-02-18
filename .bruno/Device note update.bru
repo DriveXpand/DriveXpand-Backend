@@ -1,0 +1,28 @@
+meta {
+  name: Create repair note
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{host}}/api/devices/{{deviceId}}/notes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "noteText": "Reparatur: Oelwechsel",
+    "noteDate": "2026-02-17",
+    "notePrice": 199.99
+  }
+}
+
+vars:post-response {
+  noteId: res.body.id
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

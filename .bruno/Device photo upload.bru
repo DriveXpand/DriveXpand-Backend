@@ -1,0 +1,30 @@
+meta {
+  name: Device photo upload
+  type: http
+  seq: 15
+}
+
+patch {
+  url: {{host}}/api/devices/{{deviceId}}/photo
+  body: multipartForm
+  auth: inherit
+}
+
+body:json {
+  {
+    "file": ""
+  }
+}
+
+body:multipart-form {
+  file: @file(Porsche 911 Carrera 4 GTS.jpg) @contentType(image/jpeg)
+}
+
+body:file {
+  file: @file(Porsche 911 Carrera 4 GTS.jpg) @contentType(image/jpeg)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

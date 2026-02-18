@@ -1,0 +1,22 @@
+meta {
+  name: Get all repair notes
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{host}}/api/devices/{{deviceId}}/notes?page=0&pageSize=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~page: 0
+  ~pageSize: 10
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+

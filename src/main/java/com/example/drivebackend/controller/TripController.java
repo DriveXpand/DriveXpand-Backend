@@ -120,8 +120,11 @@ public class TripController {
             @Parameter(description = "Device ID", required = true) @RequestParam("deviceId") String deviceId
     ) {
         List<TelemetryEntity> telemetry = telemetrySampleRepository.findByTrip_IdAndDevice_DeviceId(tripId, deviceId);
-
-        TripEntity trip = telemetry.getFirst().getTrip();
+        if (telemetry.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        TripEntity trip = telemetry.getFirst()
+                .getTrip();
         List<Map<String, Object>> aggregated_data = new ArrayList<>();
         List<Map<String, Object>> timed_data = new ArrayList<>();
         for (TelemetryEntity entity : telemetry){ 

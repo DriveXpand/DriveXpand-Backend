@@ -6,18 +6,20 @@
     "node_modules",
     ".git"
   ],
-  "size": 0.0014181137084960938,
-  "filesCount": 7,
+  "size": 0.004786491394042969,
+  "filesCount": 18,
   "proxy": {
-    "enabled": true,
-    "protocol": "http",
-    "hostname": "{{proxy}}",
-    "port": 8080,
-    "auth": {
-      "enabled": false,
-      "username": "",
-      "password": ""
-    },
-    "bypassProxy": "localhost,127.0.0.1"
+    "inherit": false,
+    "config": {
+      "protocol": "http",
+      "hostname": "{{proxy}}",
+      "port": 8080,
+      "auth": {
+        "username": "",
+        "password": "",
+        "disabled": true
+      },
+      "bypassProxy": "localhost,127.0.0.1, 10.32.42.36"
+    }
   }
 }

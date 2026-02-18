@@ -1,0 +1,16 @@
+meta {
+  name: Device photo download
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{host}}/api/devices/{{deviceId}}/photo
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
