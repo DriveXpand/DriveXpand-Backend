@@ -30,6 +30,7 @@ import com.example.drivebackend.dto.RepairNoteRequest;
 import com.example.drivebackend.dto.RepairNoteResponse;
 import com.example.drivebackend.entities.DeviceEntity;
 import com.example.drivebackend.entities.RepairNoteEntity;
+import com.example.drivebackend.mapper.RepairNoteMapper;
 import com.example.drivebackend.repository.DeviceRepository;
 import com.example.drivebackend.repository.RepairNoteRepository;
 import com.example.drivebackend.services.TelemetryService;
@@ -55,6 +56,7 @@ public class DeviceController {
 
     private final DeviceRepository deviceRepository;
     private final RepairNoteRepository repairNoteRepository;
+    private final RepairNoteMapper repairNoteMapper;
     private final TelemetryService telemetryService;
 
     @Operation(summary = "Vehicle statistics", description = "Get aggregated vehicle statistics (distance, speed, drive time)")
@@ -159,7 +161,7 @@ public class DeviceController {
 
         Page<RepairNoteEntity> notes = repairNoteRepository.findByDeviceIdOrderByNoteDateDesc(deviceId, pageable);
         List<RepairNoteResponse> responses = notes.getContent().stream()
-                .map(note -> new RepairNoteResponse(note.getId(), note.getNoteText(), note.getNoteDate(), note.getNotePrice()))
+                .map(repairNoteMapper::toDto)
                 .toList();
 
         return ResponseEntity.ok(responses);
@@ -178,21 +180,10 @@ public class DeviceController {
             return ResponseEntity.notFound().build();
         }
 
-        RepairNoteEntity note = new RepairNoteEntity();
-        note.setDeviceId(deviceId);
-        note.setNoteText(request.noteText());
-        note.setNoteDate(request.noteDate());
-        note.setNotePrice(request.notePrice());
-
+        RepairNoteEntity note = repairNoteMapper.toEntity(request, deviceId);
         RepairNoteEntity saved = repairNoteRepository.save(note);
-        RepairNoteResponse response = new RepairNoteResponse(
-                saved.getId(),
-                saved.getNoteText(),
-                saved.getNoteDate(),
-                saved.getNotePrice()
-        );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(repairNoteMapper.toDto(saved));
     }
 
     @Operation(summary = "Get repair note by ID", description = "Fetch a specific repair note")
@@ -204,7 +195,7 @@ public class DeviceController {
             @Parameter(description = "Note ID", required = true) @PathVariable UUID noteId) {
 
         return repairNoteRepository.findByIdAndDeviceId(noteId, deviceId)
-                .map(note -> new RepairNoteResponse(note.getId(), note.getNoteText(), note.getNoteDate(), note.getNotePrice()))
+                .map(repairNoteMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -224,25 +215,11 @@ public class DeviceController {
         }
 
         RepairNoteEntity note = noteOpt.get();
-        if (request.noteText() != null) {
-            note.setNoteText(request.noteText());
-        }
-        if (request.noteDate() != null) {
-            note.setNoteDate(request.noteDate());
-        }
-        if (request.notePrice() != null) {
-            note.setNotePrice(request.notePrice());
-        }
+        repairNoteMapper.updateEntityFromRequest(request, note);
 
         RepairNoteEntity saved = repairNoteRepository.save(note);
-        RepairNoteResponse response = new RepairNoteResponse(
-                saved.getId(),
-                saved.getNoteText(),
-                saved.getNoteDate(),
-                saved.getNotePrice()
-        );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(repairNoteMapper.toDto(saved));
     }
 
     @Operation(summary = "Delete repair note", description = "Delete a specific repair note")
