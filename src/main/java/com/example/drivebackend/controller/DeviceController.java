@@ -38,6 +38,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DeviceController {
 
+    private static final List<String> SUPPORTED_IMAGE_TYPES = List.of(
+            MediaType.IMAGE_JPEG_VALUE,
+            MediaType.IMAGE_PNG_VALUE,
+            MediaType.IMAGE_GIF_VALUE,
+            "image/webp"
+    );
+
     private final DeviceRepository deviceRepository;
     private final TelemetryService telemetryService;
     private final DeviceNoteService deviceNoteService;
@@ -145,13 +152,14 @@ public class DeviceController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Upload device note photo", description = "Upload or replace the repair note photo")
+    @Operation(summary = "Upload device note photo", description = "Upload or replace the repair note photo (supports JPEG, PNG, GIF, WebP)")
     @ApiResponse(responseCode = "204", description = "Photo uploaded")
     @ApiResponse(responseCode = "404", description = "Device not found")
-    @PatchMapping(path = "/{deviceId}/note/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiResponse(responseCode = "415", description = "Unsupported image format")
+    @PatchMapping(path = "/{deviceId}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> uploadDeviceNotePhoto(
             @Parameter(description = "Device ID", required = true) @PathVariable String deviceId,
-            @Parameter(description = "Photo file", required = true) @RequestPart("file") MultipartFile file) {
+            @Parameter(description = "Photo file (JPEG, PNG, GIF, WebP)", required = true) @RequestPart("file") MultipartFile file) {
         try {
             byte[] content = file.getBytes();
             String contentType = file.getContentType();
@@ -169,7 +177,7 @@ public class DeviceController {
     @Operation(summary = "Download device note photo", description = "Download the repair note photo")
     @ApiResponse(responseCode = "200", description = "Photo file")
     @ApiResponse(responseCode = "404", description = "Device or photo not found")
-    @GetMapping("/{deviceId}/note/photo")
+    @GetMapping("/{deviceId}/photo")
     public ResponseEntity<byte[]> downloadDeviceNotePhoto(
             @Parameter(description = "Device ID", required = true) @PathVariable String deviceId) {
         Optional<DeviceNoteService.DeviceNotePhoto> photoOpt = deviceNoteService.getNotePhoto(deviceId);

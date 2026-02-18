@@ -5,8 +5,8 @@ meta {
 }
 
 patch {
-  url: {{host}}/api/devices/{{deviceId}}/note/photo
-  body: file
+  url: {{host}}/api/devices/{{deviceId}}/photo
+  body: multipartForm
   auth: inherit
 }
 
@@ -17,7 +17,7 @@ body:json {
 }
 
 body:multipart-form {
-  file: ./Porsche 911 Carrera 4 GTS.jpg @contentType(image/jpeg)
+  file: @file(Porsche 911 Carrera 4 GTS.jpg) @contentType(image/jpeg)
 }
 
 body:file {
