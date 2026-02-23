@@ -12,6 +12,7 @@ public record TripDetailsResponse(
         Instant endTime,
         String startLocation,
         String endLocation,
+        String note,
         List<Map<String, Object>> timed_data,
         List<Map<String, Object>> aggregated_data,
         Float trip_distance_km

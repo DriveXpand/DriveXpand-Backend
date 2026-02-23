@@ -166,6 +166,7 @@ public class TelemetryServiceImpl implements TelemetryService {
                     trip != null ? trip.getEndTime() : null,
                     trip != null ? trip.getStartLocation() : null,
                     trip != null ? trip.getEndLocation() : null,
+                    trip != null ? trip.getNote() : null,
                     timedData,
                     aggregatedData,
                     trip != null ? trip.getTrip_distance_km() : null

@@ -43,6 +43,9 @@ public class TripEntity {
     @Column(name = "end_location")
     private String endLocation;
 
+    @Column(name = "note")
+    private String note;
+
     @Column(name = "trip_distance_km")
     private Float trip_distance_km;
 

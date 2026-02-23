@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,10 +22,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.drivebackend.dto.TelemetryResponse;
 import com.example.drivebackend.dto.TripDetailsResponse;
 import com.example.drivebackend.dto.TripResponse;
 import com.example.drivebackend.dto.TripUpdateRequest;
-import com.example.drivebackend.dto.TelemetryResponse;
 import com.example.drivebackend.entities.TelemetryEntity;
 import com.example.drivebackend.entities.TripEntity;
 import com.example.drivebackend.repository.TelemetrySampleRepository;
@@ -138,6 +137,7 @@ public class TripController {
             trip.getEndTime(),
             trip.getStartLocation(),
             trip.getEndLocation(),
+            trip.getNote(),
             timed_data,
             aggregated_data,
             trip.getTrip_distance_km()
@@ -175,6 +175,9 @@ public class TripController {
                     if (request.endLocation() != null) {
                         trip.setEndLocation(request.endLocation());
                     }
+                    if (request.note() != null) {
+                        trip.setNote(request.note());
+                    }
                     TripEntity saved = tripRepository.save(trip);
                     return ResponseEntity.ok(toResponse(saved));
                 })
@@ -189,6 +192,7 @@ public class TripController {
                 trip.getEndTime(),
                 trip.getStartLocation(),
                 trip.getEndLocation(),
+                trip.getNote(),
                 trip.getTrip_distance_km()
         );
     }
