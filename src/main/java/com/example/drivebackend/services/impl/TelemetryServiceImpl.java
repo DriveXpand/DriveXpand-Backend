@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.drivebackend.dto.TelemetryIngestRequest;
 import com.example.drivebackend.dto.TelemetryResponse;
 import com.example.drivebackend.dto.TripDetailsResponse;
+import com.example.drivebackend.dto.TimeBucket;
 import com.example.drivebackend.entities.DeviceEntity;
 import com.example.drivebackend.entities.TelemetryEntity;
 import com.example.drivebackend.entities.TripEntity;
@@ -175,6 +176,46 @@ public class TelemetryServiceImpl implements TelemetryService {
         }
 
         return result;
+    }
+
+@Override
+public List<TimeBucket> fetchTripsPerHour(String deviceId, Instant since, Instant end) {
+    List<TripEntity> trips;
+    
+    // Initialisierung der Zähler
+    int morning = 0, midday = 0, afternoon = 0, evening = 0, night = 0;
+    if (since == null || end == null) {
+        trips = tripRepository.findAllByDevice_DeviceId(deviceId);
+    } else {
+        trips = tripRepository.findAllByDevice_DeviceIdAndStartTimeBetween(deviceId, since, end);
+    }
+
+    if (!trips.isEmpty()) {
+        for (TripEntity trip : trips) {
+            // Wichtig: Nutze die ZoneId des Systems oder UTC für konsistente Ergebnisse
+            int hour = trip.getStartTime().atZone(java.time.ZoneId.systemDefault()).getHour();
+            if (hour >= 6 && hour < 10) morning++;
+            else if (hour >= 10 && hour < 14) midday++;
+            else if (hour >= 14 && hour < 18) afternoon++;
+            else if (hour >= 18 && hour < 22) evening++;
+            else night++; // Deckt 22:00 bis 05:59 ab
+        }
+    }
+
+    int total = trips.size();
+    
+    // Rückgabe der Liste inklusive des neuen Nacht-Buckets
+    return List.of(
+        new TimeBucket("Morgens (6-10)", calculatePercentage(morning, total)),
+        new TimeBucket("Mittags (10-14)", calculatePercentage(midday, total)),
+        new TimeBucket("Nachmittags (14-18)", calculatePercentage(afternoon, total)),
+        new TimeBucket("Abends (18-22)", calculatePercentage(evening, total)),
+        new TimeBucket("Nachts (22-6)", calculatePercentage(night, total))
+    );
+    }
+
+    private int calculatePercentage(int count, int total) {
+       return (int) Math.round((double) count / total * 100);
     }
 
     private TripEntity resolveTrip(DeviceEntity device, Instant currentStartTime) {

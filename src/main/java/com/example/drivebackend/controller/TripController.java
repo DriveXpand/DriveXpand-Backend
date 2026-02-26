@@ -26,6 +26,7 @@ import com.example.drivebackend.dto.TelemetryResponse;
 import com.example.drivebackend.dto.TripDetailsResponse;
 import com.example.drivebackend.dto.TripResponse;
 import com.example.drivebackend.dto.TripUpdateRequest;
+import com.example.drivebackend.dto.TimeBucket;
 import com.example.drivebackend.entities.TelemetryEntity;
 import com.example.drivebackend.entities.TripEntity;
 import com.example.drivebackend.repository.TelemetrySampleRepository;
@@ -65,6 +66,16 @@ public class TripController {
             result.put(day, result.getOrDefault(day, 0) + 1);
         }
         return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Get trip distribution by time of day", description = "Returns percentages of trips for morning, midday, afternoon and evening")
+    @ApiResponse(responseCode = "200", description = "List of time buckets with percentages")
+    @GetMapping("/time-of-day")
+    public List<TimeBucket> getTripsPerHour(
+        @RequestParam String deviceId,
+        @RequestParam(required = false) Instant since,
+        @RequestParam(required = false) Instant end) {
+    return telemetryService.fetchTripsPerHour(deviceId, since, end);
     }
 
     @Operation(

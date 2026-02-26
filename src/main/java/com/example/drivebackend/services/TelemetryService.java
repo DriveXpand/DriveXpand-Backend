@@ -3,6 +3,7 @@ package com.example.drivebackend.services;
 import com.example.drivebackend.dto.TelemetryIngestRequest;
 import com.example.drivebackend.dto.TelemetryResponse;
 import com.example.drivebackend.dto.TripDetailsResponse;
+import com.example.drivebackend.dto.TimeBucket;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,6 +17,8 @@ public interface TelemetryService {
 
     Optional<TelemetryResponse> fetchLatestTelemetry(String deviceId);
 
+    List<TimeBucket> fetchTripsPerHour(String deviceId, Instant since, Instant end);
+
     List<TelemetryResponse> fetchTelemetryInRange(String deviceId, Instant since, Instant end);
 
     List<TelemetryResponse> fetchTelemetryInRangeByTrip(String deviceId, UUID tripId, Instant since, Instant end);
@@ -24,4 +27,5 @@ public interface TelemetryService {
     Map<UUID, List<TelemetryResponse>> fetchTelemetryGroupedByTrip(String deviceId, Instant since, Instant end);
 
     Map<UUID, TripDetailsResponse> fetchTripDetails(String deviceId, Instant since, Instant end);
+    
 }

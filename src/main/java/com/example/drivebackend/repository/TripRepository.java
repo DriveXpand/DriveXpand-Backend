@@ -2,6 +2,8 @@ package com.example.drivebackend.repository;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.List;
+
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +32,6 @@ Page<TripEntity> findByDevice_DeviceIdAndStartTimeBefore(
         Instant end,
         Pageable pageable
 );
+List<TripEntity> findAllByDevice_DeviceIdAndStartTimeBetween(String deviceId, Instant since, Instant end);
+List<TripEntity> findAllByDevice_DeviceId(String deviceId);
 }
